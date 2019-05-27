@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_example/common.dart';
 
 class ScanResultTile extends StatelessWidget {
   const ScanResultTile({Key key, this.result, this.onTap}) : super(key: key);
@@ -157,7 +158,7 @@ class CharacteristicTile extends StatelessWidget {
   final BluetoothCharacteristic characteristic;
   final List<DescriptorTile> descriptorTiles;
   final VoidCallback onReadPressed;
-  final VoidCallback onWritePressed;
+  final VoidCallbackWithListInt onWritePressed;
   final VoidCallback onNotificationPressed;
 
   const CharacteristicTile(
@@ -184,7 +185,9 @@ class CharacteristicTile extends StatelessWidget {
         new IconButton(
           icon: new Icon(Icons.file_upload,
               color: Theme.of(context).iconTheme.color.withOpacity(0.5)),
-          onPressed: onWritePressed,
+          onPressed: () {
+            _asyncInputDialog(context);
+          },
         ),
         new IconButton(
           icon: new Icon(
@@ -226,6 +229,53 @@ class CharacteristicTile extends StatelessWidget {
         trailing: actions,
       );
     }
+  }
+
+  Future<String> _asyncInputDialog(BuildContext context) async {
+    String stringValue = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false, // dialog is dismissible with a tap on the barrier
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter value'),
+          content: new Row(
+            children: <Widget>[
+              new Expanded(
+                  child: new TextField(
+                    autofocus: true,
+                    decoration: new InputDecoration(
+                        labelText: 'Value', hintText: 'eg. 0x32 0x34'),
+                    onChanged: (value) {
+                      stringValue = value;
+                    },
+                  ))
+            ],
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: () {
+                try {
+                  List<int> valueList = [];
+                  List<String> parts = stringValue.split(" ");
+                  parts.forEach((s) {
+                    int v = int.parse(s);
+                    valueList.add(v);
+                  });
+                  if (valueList.isNotEmpty) {
+                    this.onWritePressed(valueList);
+                  }
+                } catch (e) {
+                  print("failed $e");
+                }
+                Navigator.of(context).pop(stringValue);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

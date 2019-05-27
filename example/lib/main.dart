@@ -151,8 +151,8 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     setState(() {});
   }
 
-  _writeCharacteristic(BluetoothCharacteristic c) async {
-    await device.writeCharacteristic(c, [0x12, 0x34],
+  _writeCharacteristic(BluetoothCharacteristic c, List<int> valueList) async {
+    await device.writeCharacteristic(c, valueList,
         type: CharacteristicWriteType.withResponse);
     setState(() {});
   }
@@ -230,7 +230,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                       (c) => new CharacteristicTile(
                             characteristic: c,
                             onReadPressed: () => _readCharacteristic(c),
-                            onWritePressed: () => _writeCharacteristic(c),
+                            onWritePressed: (valueList) => _writeCharacteristic(c, valueList),
                             onNotificationPressed: () => _setNotification(c),
                             descriptorTiles: c.descriptors
                                 .map(
